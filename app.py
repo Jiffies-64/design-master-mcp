@@ -224,9 +224,20 @@ def mcp_config():
     # Get the actual server URL
     server_url = request.url_root.rstrip('/')
     
+    # Get startup configuration from environment variables (set by start_all_services.py)
+    mcp_transport = os.environ.get('MCP_TRANSPORT', 'stdio')
+    mcp_host = os.environ.get('MCP_HOST', '127.0.0.1')
+    mcp_port = int(os.environ.get('MCP_PORT', 8000))
+    
     # Generate the global MCP configuration with your format
-    # Point to the separate MCP server running on port 5001
-    mcp_server_url = server_url.replace(':5000', ':5001')
+    # Point to the separate MCP server running on the configured port
+    if mcp_transport == 'stdio':
+        # For STDIO, we don't need a separate URL as it runs as a subprocess
+        mcp_server_url = server_url
+    else:
+        # For HTTP/SSE, point to the configured MCP server
+        mcp_server_url = f"http://{mcp_host}:{mcp_port}"
+    
     mcp_config = {
         "DesignMaster": {
             "url": mcp_server_url,
@@ -240,7 +251,10 @@ def mcp_config():
                           mcp_config=mcp_config,
                           server_url=server_url,
                           auth_token=auth_token,
-                          username=session['username'])
+                          username=session['username'],
+                          mcp_transport=mcp_transport,
+                          mcp_host=mcp_host,
+                          mcp_port=mcp_port)
 
 # MCP capabilities endpoint (no authentication required)
 @app.route('/mcp/capabilities', methods=['GET'])
@@ -365,6 +379,19 @@ def mcp_sse():
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'OK'})
+
+# Endpoint to get startup script configuration
+@app.route('/mcp/startup-config', methods=['GET'])
+def mcp_startup_config():
+    """Return the startup script configuration"""
+    # Default configuration (can be overridden by environment variables)
+    config = {
+        'transport': os.environ.get('MCP_TRANSPORT', 'stdio'),
+        'host': os.environ.get('MCP_HOST', '127.0.0.1'),
+        'port': int(os.environ.get('MCP_PORT', 8000)),
+        'web_port': int(os.environ.get('WEB_PORT', 5000))
+    }
+    return jsonify(config)
 
 if __name__ == '__main__':
     # Bind to all interfaces to allow external access

@@ -22,8 +22,7 @@
     
     <div class="card">
         <h3><i class="fas fa-info-circle"></i> 配置说明</h3>
-        <p>此配置文件用于将您的IDE连接到Design Document MCP服务器。请将以下JSON配置复制并粘贴到您的IDE的MCP配置中。</p>
-        <p><strong>注意：</strong>MCP标准端点为 <code>/mcp</code>，您的IDE应通过此端点与服务器通信。</p>
+        <p>此配置文件用于将您的IDE连接到Design Document MCP服务器。我们支持多种传输方式，请根据您的IDE选择合适的配置。</p>
     </div>
     
     <div class="form-group">
@@ -37,25 +36,72 @@
     </div>
     
     <div class="card">
-        <h3><i class="fas fa-file-code"></i> MCP配置JSON</h3>
+        <h3><i class="fas fa-file-code"></i> MCP配置选项</h3>
+        
+        <!-- HTTP配置 -->
         <div class="form-group">
-            <label>完整配置内容</label>
-            <textarea id="mcpConfig" readonly style="font-family: monospace; background: var(--light); height: 200px;">{{ mcp_config | tojson(indent=2) }}</textarea>
+            <label>HTTP模式配置</label>
+            <textarea id="httpConfig" readonly style="font-family: monospace; background: var(--light); height: 150px;">{
+    "mcpServers": {
+        "DesignMaster": {
+            "url": "http://{{ mcp_host }}:{{ mcp_port }}/mcp",
+            "headers": {
+                "Authorization": "Bearer {{ auth_token }}"
+            }
+        }
+    }
+}</textarea>
+            <button class="btn btn-success" onclick="copyToClipboard('httpConfig')">
+                <i class="fas fa-copy"></i> 复制HTTP配置
+            </button>
         </div>
-        <button class="btn btn-success" onclick="copyToClipboard('mcpConfig')">
-            <i class="fas fa-copy"></i> 复制配置到剪贴板
-        </button>
+        
+        <!-- SSE配置 -->
+        <div class="form-group">
+            <label>SSE模式配置</label>
+            <textarea id="sseConfig" readonly style="font-family: monospace; background: var(--light); height: 150px;">{
+    "mcpServers": {
+        "DesignMaster": {
+            "url": "http://{{ mcp_host }}:{{ mcp_port }}/sse",
+            "headers": {
+                "Authorization": "Bearer {{ auth_token }}"
+            }
+        }
+    }
+}</textarea>
+            <button class="btn btn-success" onclick="copyToClipboard('sseConfig')">
+                <i class="fas fa-copy"></i> 复制SSE配置
+            </button>
+        </div>
     </div>
     
     <div class="card">
         <h3><i class="fas fa-question-circle"></i> 使用说明</h3>
         <ol>
-            <li>点击"复制配置到剪贴板"按钮</li>
+            <li>选择适合您IDE的传输方式</li>
+            <li>点击对应按钮复制配置到剪贴板</li>
             <li>在您的IDE中找到MCP配置选项</li>
             <li>将复制的JSON配置粘贴到相应位置</li>
             <li>保存配置并重启IDE</li>
             <li>现在您可以使用MCP工具生成设计文档了</li>
         </ol>
+        <div class="alert alert-info">
+            <h4><i class="fas fa-info-circle"></i> 传输方式说明</h4>
+            <ul>
+                <li><strong>STDIO</strong>: 通过标准输入输出与IDE通信，适合本地开发环境</li>
+                <li><strong>HTTP</strong>: 通过HTTP协议与IDE通信，需要启动MCP服务</li>
+                <li><strong>SSE</strong>: 通过Server-Sent Events与IDE通信，需要启动MCP服务</li>
+            </ul>
+        </div>
+        
+        <!-- 显示当前启动配置信息 -->
+        <div class="alert alert-info">
+            <h4><i class="fas fa-info-circle"></i> 当前启动配置</h4>
+            <p>传输方式: <strong>{{ mcp_transport.upper() }}</strong></p>
+            <p>主机地址: <strong>{{ mcp_host }}</strong></p>
+            <p>端口: <strong>{{ mcp_port }}</strong></p>
+            <p class="small">此配置由启动脚本生成，如需更改请修改启动参数</p>
+        </div>
     </div>
 </div>
 
@@ -66,10 +112,11 @@
         document.execCommand('copy');
         
         // Show feedback
-        const originalText = event.target.innerHTML;
-        event.target.innerHTML = '<i class="fas fa-check"></i> 已复制到剪贴板!';
+        const button = event.target.tagName === 'I' ? event.target.parentElement : event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> 已复制到剪贴板!';
         setTimeout(() => {
-            event.target.innerHTML = originalText;
+            button.innerHTML = originalText;
         }, 2000);
     }
 </script>

@@ -58,30 +58,68 @@ This is a MCP tool for generating design documents with the following components
 
 ### MCP Service (FastMCP)
 
-1. Install the MCP service using FastMCP CLI:
-   ```
-   fastmcp install mcp_service.py
-   ```
+#### 方式1: 使用FastMCP CLI安装
+```bash
+fastmcp install mcp_service.py
+```
 
-2. If the `fastmcp` command is not available, run the service directly:
-   ```
-   python mcp_service.py
-   ```
+#### 方式2: 直接运行服务
+```bash
+# STDIO模式 (默认)
+python mcp_service.py
 
-3. The MCP service will run as a STDIO-based server that can be connected to your IDE
+# HTTP模式
+python mcp_service.py --http --host 127.0.0.1 --port 8000
 
-4. Configure your IDE with the following MCP configuration:
-   ```json
-   {
-     "mcpServers": [
-       {
-         "name": "DesignMaster",
-         "command": "python",
-         "args": ["mcp_service.py"]
-       }
-     ]
-   }
-   ```
+# SSE模式
+python mcp_service.py --sse --host 127.0.0.1 --port 8001
+
+# StreamableHTTP模式
+python mcp_service.py --streamable-http --host 127.0.0.1 --port 8002
+```
+
+#### 方式3: 使用启动脚本 (推荐)
+```bash
+# 启动所有服务
+python start_all_services.py
+
+# 启动特定传输方式的MCP服务
+python start_all_services.py --mcp-transport http --mcp-port 8000
+
+# 只启动MCP服务
+python start_all_services.py --no-web --mcp-transport sse --mcp-port 8001
+
+# 只启动Web服务
+python start_all_services.py --no-mcp
+```
+
+#### IDE配置
+根据您选择的传输方式，配置您的IDE：
+
+**STDIO模式:**
+```json
+{
+  "mcpServers": [
+    {
+      "name": "DesignMaster",
+      "command": "python",
+      "args": ["mcp_service.py"]
+    }
+  ]
+}
+```
+
+**HTTP/SSE模式:**
+```json
+{
+  "mcpServers": [
+    {
+      "name": "DesignMaster",
+      "url": "http://127.0.0.1:8000/mcp"
+    }
+  ]
+}
+```
 
 ## Project Structure
 
@@ -126,26 +164,57 @@ These templates provide a starting point for creating design documents and can b
 
 ## MCP Configuration
 
-The system now supports generating a global MCP configuration for IDE integration with the following format:
+The system now supports multiple transport modes for IDE integration. Choose the appropriate configuration for your IDE:
 
+### STDIO Mode (Recommended for local development)
 ```json
 {
-  "DesignMaster": {
-    "url": "http://127.0.0.1:5000",
-    "headers": {
-      "Authorization": "Bearer user-auth-token"
+  "mcpServers": [
+    {
+      "name": "DesignMaster",
+      "command": "python",
+      "args": ["mcp_service.py"]
     }
-  }
+  ]
+}
+```
+
+### HTTP Mode
+```json
+{
+  "mcpServers": [
+    {
+      "name": "DesignMaster",
+      "url": "http://127.0.0.1:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer user-auth-token"
+      }
+    }
+  ]
+}
+```
+
+### SSE Mode
+```json
+{
+  "mcpServers": [
+    {
+      "name": "DesignMaster",
+      "url": "http://127.0.0.1:8001/sse",
+      "headers": {
+        "Authorization": "Bearer user-auth-token"
+      }
+    }
+  ]
 }
 ```
 
 To get the MCP configuration:
 1. Visit the template market
 2. Click on "获取MCP配置"
-3. Copy the configuration JSON
-4. Paste it into your IDE's MCP configuration
-
-This single configuration allows your IDE to access all MCP tools provided by the server.
+3. Choose the appropriate transport mode
+4. Copy the configuration JSON
+5. Paste it into your IDE's MCP configuration
 
 ## Troubleshooting Connection Issues
 
