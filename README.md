@@ -216,15 +216,6 @@ To get the MCP configuration:
 4. Copy the configuration JSON
 5. Paste it into your IDE's MCP configuration
 
-## Troubleshooting Connection Issues
-
-If you encounter connection issues with the error message:
-```
-failed to create MCP client for DesignMaster: timeout waiting for endpoint
-```
-
-Please refer to the [MCP_CONNECTION_TROUBLESHOOTING.md](MCP_CONNECTION_TROUBLESHOOTING.md) file for detailed troubleshooting steps.
-
 ## Testing MCP Connection
 
 You can use the provided test scripts to verify MCP connection:
