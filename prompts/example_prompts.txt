@@ -1,0 +1,9 @@
+# Example Prompts for Design Document
+
+1. Provide the project name and a brief description of its purpose.
+2. Describe the overall architecture of the system.
+3. List the main components of the system and their responsibilities.
+4. Design the database schema using PlantUML.
+5. Define the API endpoints with their methods and parameters.
+6. Identify security considerations for the system.
+7. Describe the deployment process and infrastructure requirements.

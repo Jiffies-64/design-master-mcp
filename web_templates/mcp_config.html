@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}MCP配置{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-file-alt"></i> Design Document MCP</h1>
+    <div class="user-info">
+        <span><i class="fas fa-user"></i> 当前用户: <strong>{{ username }}</strong></span>
+        <a href="/logout" class="btn btn-warning"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2><i class="fas fa-cog"></i> MCP配置</h2>
+            <p>为您的IDE生成全局MCP配置</p>
+        </div>
+        <a href="/templates/market" class="btn"><i class="fas fa-arrow-left"></i> 返回模板市场</a>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-info-circle"></i> 配置说明</h3>
+        <p>此配置文件用于将您的IDE连接到Design Document MCP服务器。请将以下JSON配置复制并粘贴到您的IDE的MCP配置中。</p>
+        <p><strong>注意：</strong>MCP标准端点为 <code>/mcp</code>，您的IDE应通过此端点与服务器通信。</p>
+    </div>
+    
+    <div class="form-group">
+        <label for="serverUrl">服务器地址</label>
+        <input type="text" id="serverUrl" value="{{ server_url }}" readonly>
+    </div>
+    
+    <div class="form-group">
+        <label for="authToken">认证令牌</label>
+        <input type="text" id="authToken" value="{{ auth_token }}" readonly>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-file-code"></i> MCP配置JSON</h3>
+        <div class="form-group">
+            <label>完整配置内容</label>
+            <textarea id="mcpConfig" readonly style="font-family: monospace; background: var(--light); height: 200px;">{{ mcp_config | tojson(indent=2) }}</textarea>
+        </div>
+        <button class="btn btn-success" onclick="copyToClipboard('mcpConfig')">
+            <i class="fas fa-copy"></i> 复制配置到剪贴板
+        </button>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-question-circle"></i> 使用说明</h3>
+        <ol>
+            <li>点击"复制配置到剪贴板"按钮</li>
+            <li>在您的IDE中找到MCP配置选项</li>
+            <li>将复制的JSON配置粘贴到相应位置</li>
+            <li>保存配置并重启IDE</li>
+            <li>现在您可以使用MCP工具生成设计文档了</li>
+        </ol>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(elementId) {
+        const textarea = document.getElementById(elementId);
+        textarea.select();
+        document.execCommand('copy');
+        
+        // Show feedback
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="fas fa-check"></i> 已复制到剪贴板!';
+        setTimeout(() => {
+            event.target.innerHTML = originalText;
+        }, 2000);
+    }
+</script>
+{% endblock %}

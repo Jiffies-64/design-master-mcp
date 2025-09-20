@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Document MCP Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .endpoint h4 {
+            margin-top: 0;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Design Document MCP Server</h1>
+        <p>Server for generating design documents with AI assistance</p>
+    </div>
+
+    <div class="container">
+        <h2>API Endpoints</h2>
+        
+        <div class="endpoint">
+            <h4>Health Check</h4>
+            <p><strong>GET</strong> <code>/health</code></p>
+            <p>Check if the server is running</p>
+        </div>
+        
+        <div class="endpoint">
+            <h4>Start Document Generation</h4>
+            <p><strong>POST</strong> <code>/mcp/start_document</code></p>
+            <p>Begin generating a design document</p>
+            <p><strong>Parameters:</strong></p>
+            <pre>
+{
+    "project_root_path": "/path/to/project",
+    "user_id": 123
+}</pre>
+        </div>
+        
+        <div class="endpoint">
+            <h4>Get Next Step</h4>
+            <p><strong>GET</strong> <code>/mcp/next_step?template_id=1</code></p>
+            <p>Get the next prompt in the sequence</p>
+        </div>
+        
+        <div class="endpoint">
+            <h4>Submit Placeholder Content</h4>
+            <p><strong>POST</strong> <code>/mcp/submit_content</code></p>
+            <p>Submit content for placeholders</p>
+            <p><strong>Parameters:</strong></p>
+            <pre>
+{
+    "placeholder_id": 1,
+    "content": "Placeholder content"
+}</pre>
+        </div>
+        
+        <div class="endpoint">
+            <h4>Generate Complete Document</h4>
+            <p><strong>POST</strong> <code>/mcp/generate_document</code></p>
+            <p>Generate the complete design document</p>
+            <p><strong>Parameters:</strong></p>
+            <pre>
+{
+    "template_id": 1
+}</pre>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Configuration</h2>
+        <p>Use the web interface below to configure templates and prompts.</p>
+        <!-- This would be where you add forms for template and prompt configuration -->
+    </div>
+</body>
+</html>
