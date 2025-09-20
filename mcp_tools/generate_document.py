@@ -1,18 +1,32 @@
 # MCP Tool 4: Generate Complete Document
 
 from flask import jsonify, request
-from models.models import db, Template, Placeholder, Prompt
+from models.models import db, Template, Placeholder, Prompt, User
 
 def generate_complete_document():
     """
     Generate the complete design document
-    Requires: template_id
+    Requires: template_id, api_key
     """
     data = request.json
     template_id = data.get('template_id')
+    api_key = data.get('api_key')
     
-    if not template_id:
-        return jsonify({'error': 'Missing template_id parameter'}), 400
+    if not template_id or not api_key:
+        return jsonify({'error': 'Missing required parameters'}), 400
+    
+    # Check if user exists by API key
+    user = User.query.filter_by(auth_token=api_key).first()
+    if not user:
+        return jsonify({'error': 'Invalid API key'}), 401
+    
+    # Check if template belongs to user or is public
+    template = Template.query.get(template_id)
+    if not template:
+        return jsonify({'error': 'Template not found'}), 404
+    
+    if template.user_id != user.id and not template.is_public:
+        return jsonify({'error': 'Access denied to private template'}), 403
     
     # Check if all prompts are completed
     incomplete_prompts = Prompt.query.filter_by(
@@ -25,11 +39,6 @@ def generate_complete_document():
             'error': 'Not all steps are completed',
             'incomplete_steps': incomplete_prompts
         }), 400
-    
-    # Get the template
-    template = Template.query.get(template_id)
-    if not template:
-        return jsonify({'error': 'Template not found'}), 404
     
     # Get all placeholders for this template
     placeholders = Placeholder.query.filter_by(template_id=template_id).all()

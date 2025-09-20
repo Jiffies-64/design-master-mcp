@@ -31,8 +31,8 @@
     </div>
     
     <div class="form-group">
-        <label for="authToken">认证令牌</label>
-        <input type="text" id="authToken" value="{{ auth_token }}" readonly>
+        <label for="apiKey">API密钥</label>
+        <input type="text" id="apiKey" value="{{ api_key }}" readonly>
     </div>
     
     <div class="card">
@@ -46,7 +46,7 @@
         "DesignMaster": {
             "url": "http://{{ mcp_host }}:{{ mcp_port }}/mcp",
             "headers": {
-                "Authorization": "Bearer {{ auth_token }}"
+                "X-API-Key": "{{ api_key }}"
             }
         }
     }
@@ -64,7 +64,7 @@
         "DesignMaster": {
             "url": "http://{{ mcp_host }}:{{ mcp_port }}/sse",
             "headers": {
-                "Authorization": "Bearer {{ auth_token }}"
+                "X-API-Key": "{{ api_key }}"
             }
         }
     }

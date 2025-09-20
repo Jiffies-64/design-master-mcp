@@ -28,38 +28,63 @@ db = SQLAlchemy(app)
 # Import models after db initialization
 from models.models import User, Template, Placeholder, Prompt
 
+def get_user_by_api_key(api_key: str):
+    """根据API Key获取用户信息"""
+    try:
+        with app.app_context():
+            if not api_key:
+                return None
+            user = User.query.filter_by(auth_token=api_key).first()
+            return user
+    except Exception as e:
+        print(f"Error getting user by API key: {e}")
+        return None
+
 # Add tools for design document generation
 @mcp.tool()
-def start_document_generation(project_root_path: str, user_id: int) -> dict:
+def start_document_generation(project_root_path: str, api_key: str) -> dict:
     """Start generating a design document"""
     try:
         with app.app_context():
             # Validate inputs
-            if not project_root_path or not user_id:
+            if not project_root_path or not api_key:
                 return {'error': 'Missing required parameters'}
             
-            # Check if user exists
-            user = User.query.get(user_id)
+            # Check if user exists by API key
+            user = get_user_by_api_key(api_key)
             if not user:
-                return {'error': 'User not found'}
+                return {'error': 'Invalid API key'}
             
             # Here you would implement the logic to start document generation
             # For now, we'll just return a success message
             return {
                 'message': 'Document generation started successfully',
                 'project_root_path': project_root_path,
-                'user_id': user_id
+                'user_id': user.id
             }
     except Exception as e:
         return {'error': str(e)}
 
 @mcp.tool()
-def get_next_step(template_id: int) -> dict:
+def get_next_step(template_id: int, api_key: str) -> dict:
     """Get the next prompt in the sequence"""
     try:
         with app.app_context():
-            if not template_id:
-                return {'error': 'Missing template_id parameter'}
+            if not template_id or not api_key:
+                return {'error': 'Missing required parameters'}
+            
+            # Check if user exists by API key
+            user = get_user_by_api_key(api_key)
+            if not user:
+                return {'error': 'Invalid API key'}
+            
+            # Check if template belongs to user or is public
+            template = Template.query.get(template_id)
+            if not template:
+                return {'error': 'Template not found'}
+            
+            if template.user_id != user.id and not template.is_public:
+                return {'error': 'Access denied to private template'}
             
             # Find the next incomplete prompt
             next_prompt = Prompt.query.filter_by(
@@ -79,17 +104,27 @@ def get_next_step(template_id: int) -> dict:
         return {'error': str(e)}
 
 @mcp.tool()
-def submit_placeholder_content(placeholder_id: int, content: str) -> dict:
+def submit_placeholder_content(placeholder_id: int, content: str, api_key: str) -> dict:
     """Submit content for placeholders"""
     try:
         with app.app_context():
-            if not placeholder_id or content is None:
+            if not placeholder_id or content is None or not api_key:
                 return {'error': 'Missing required parameters'}
+            
+            # Check if user exists by API key
+            user = get_user_by_api_key(api_key)
+            if not user:
+                return {'error': 'Invalid API key'}
             
             # Find the placeholder
             placeholder = Placeholder.query.get(placeholder_id)
             if not placeholder:
                 return {'error': 'Placeholder not found'}
+            
+            # Check if placeholder belongs to user's template
+            template = Template.query.get(placeholder.template_id)
+            if template.user_id != user.id:
+                return {'error': 'Access denied to this placeholder'}
             
             # Update the placeholder content
             placeholder.content = content
@@ -103,12 +138,25 @@ def submit_placeholder_content(placeholder_id: int, content: str) -> dict:
         return {'error': str(e)}
 
 @mcp.tool()
-def generate_complete_document(template_id: int) -> dict:
+def generate_complete_document(template_id: int, api_key: str) -> dict:
     """Generate the complete design document"""
     try:
         with app.app_context():
-            if not template_id:
-                return {'error': 'Missing template_id parameter'}
+            if not template_id or not api_key:
+                return {'error': 'Missing required parameters'}
+            
+            # Check if user exists by API key
+            user = get_user_by_api_key(api_key)
+            if not user:
+                return {'error': 'Invalid API key'}
+            
+            # Check if template belongs to user or is public
+            template = Template.query.get(template_id)
+            if not template:
+                return {'error': 'Template not found'}
+            
+            if template.user_id != user.id and not template.is_public:
+                return {'error': 'Access denied to private template'}
             
             # Check if all prompts are completed
             incomplete_prompts = Prompt.query.filter_by(
@@ -121,11 +169,6 @@ def generate_complete_document(template_id: int) -> dict:
                     'error': 'Not all steps are completed',
                     'incomplete_steps': incomplete_prompts
                 }
-            
-            # Get the template
-            template = Template.query.get(template_id)
-            if not template:
-                return {'error': 'Template not found'}
             
             # Get all placeholders for this template
             placeholders = Placeholder.query.filter_by(template_id=template_id).all()
@@ -148,7 +191,7 @@ def generate_complete_document(template_id: int) -> dict:
 
 if __name__ == "__main__":
     # Check command line arguments for transport mode
-    transport_mode = "stdio"  # default mode
+    transport_mode = "http"  # default mode
     host = "127.0.0.1"
     port = 8000
     

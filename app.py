@@ -30,33 +30,6 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# Authentication decorator for MCP tools
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Check for Authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({'error': 'Missing Authorization header'}), 401
-        
-        # Check if it's a Bearer token
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Invalid Authorization header format'}), 401
-        
-        # Extract token
-        token = auth_header.split(' ')[1]
-        
-        # Validate token against stored tokens
-        user = User.query.filter_by(auth_token=token).first()
-        if not user:
-            return jsonify({'error': 'Invalid or expired token'}), 401
-        
-        # Add user to request context for use in MCP tools
-        request.current_user = user
-        return f(*args, **kwargs)
-    
-    return decorated_function
-
 # User authentication routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -202,6 +175,60 @@ def view_template(template_id):
                           placeholders=placeholders, 
                           prompts=prompts,
                           username=session['username'])
+
+
+# MCP Configuration route - Global configuration
+@app.route('/mcp/config')
+def mcp_config():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Get the current user
+    user = User.query.get(session['user_id'])
+    if not user:
+        return redirect(url_for('login'))
+
+    # Generate and store a fixed authentication token if one doesn't exist
+    if not user.auth_token:
+        user.auth_token = secrets.token_urlsafe(32)
+        db.session.commit()
+
+    api_key = user.auth_token
+
+    # Get the actual server URL
+    server_url = request.url_root.rstrip('/')
+
+    # Get startup configuration from environment variables (set by start_all_services.py)
+    mcp_transport = os.environ.get('MCP_TRANSPORT', 'stdio')
+    mcp_host = os.environ.get('MCP_HOST', '127.0.0.1')
+    mcp_port = int(os.environ.get('MCP_PORT', 8000))
+
+    # Generate the global MCP configuration with your format
+    # Point to the separate MCP server running on the configured port
+    if mcp_transport == 'stdio':
+        # For STDIO, we don't need a separate URL as it runs as a subprocess
+        mcp_server_url = server_url
+    else:
+        # For HTTP/SSE, point to the configured MCP server
+        mcp_server_url = f"http://{mcp_host}:{mcp_port}"
+
+    mcp_config = {
+        "DesignMaster": {
+            "url": mcp_server_url,
+            "headers": {
+                "X-API-Key": api_key
+            }
+        }
+    }
+
+    return render_template('mcp_config.html',
+                           mcp_config=mcp_config,
+                           server_url=server_url,
+                           api_key=api_key,
+                           username=session['username'],
+                           mcp_transport=mcp_transport,
+                           mcp_host=mcp_host,
+                           mcp_port=mcp_port)
 
 if __name__ == '__main__':
     # Bind to all interfaces to allow external access

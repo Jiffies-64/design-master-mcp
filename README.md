@@ -187,7 +187,7 @@ The system now supports multiple transport modes for IDE integration. Choose the
       "name": "DesignMaster",
       "url": "http://127.0.0.1:8000/mcp",
       "headers": {
-        "Authorization": "Bearer user-auth-token"
+        "X-API-Key": "user-api-key"
       }
     }
   ]
@@ -202,7 +202,7 @@ The system now supports multiple transport modes for IDE integration. Choose the
       "name": "DesignMaster",
       "url": "http://127.0.0.1:8001/sse",
       "headers": {
-        "Authorization": "Bearer user-auth-token"
+        "X-API-Key": "user-api-key"
       }
     }
   ]
@@ -215,6 +215,16 @@ To get the MCP configuration:
 3. Choose the appropriate transport mode
 4. Copy the configuration JSON
 5. Paste it into your IDE's MCP configuration
+
+## Authentication
+
+The system now uses API Key authentication instead of Bearer tokens. Each user has a unique API Key that can be used to authenticate with the MCP service. The API Key is automatically generated for each user and can be found in the MCP configuration page.
+
+When making requests to the MCP service, include the API Key in the `X-API-Key` header:
+
+```
+X-API-Key: your-api-key-here
+```
 
 ## Testing MCP Connection
 
